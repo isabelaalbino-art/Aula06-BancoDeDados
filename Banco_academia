@@ -1,0 +1,187 @@
+CREATE DATABASE Banco_Academia_bela;
+
+USE Banco_Academia_bela; --- selecionar banco de dados banco_academia_bela
+
+-- comnado para listar todos os bancos de dados existentes no servidor SQL server
+SELECT name AS NomeDoBanco
+FROM sys.databases
+ORDER BY name;
+
+-- comando para listar o canco de dados atual
+SELECT DB_NAME() AS BancoAtual;
+
+-- crinado tabela professores
+CREATE TABLE Professores(
+    Id_Professores INT PRIMARY KEY IDENTITY(1,1), -- IDENTIFICADOR  PARA AUTOINCREMENTAR O ID DO PROFESSOR
+    Nome VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE, -- UNIQUE PARA NÃO PERMITIR  MAIS DE UM EMAILS
+    Especialidade VARCHAR(100) NOT NULL
+
+);
+
+CREATE TABLE Cursoss(
+    Id_Cursos INT PRIMARY KEY IDENTITY(1,1),
+    Nome_Curso VARCHAR(100) NOT NULL UNIQUE, -- UNIQUE PARA NAO PERMITIR CURSOS DUPLICADOS
+    CaragaHorario INT NOT NULL CHECK (CaragaHorario > 0 AND CaragaHorario <= 200), -- CHECK- CONDICIONAL PARA VALIDAR A CARGA HORARIA
+    Id_Professores INT NOT NULL,
+    Ativo BIT NOT NULL DEFAULT 1, -- DEFAULT PARA EDEFINIR O VALOR PADRAO COMO 1 (ATIVO)
+
+    CONSTRAINT FK_Cursos_Prfessores -- CONTRAINT PARA CRIAR UMA CHAVE ESTRANGEIRA
+    FOREIGN KEY (Id_Professores) REFERENCES Professores(Id_Professores)
+
+);
+
+CREATE TABLE Alunos(
+    IdAluno INT PRIMARY KEY IDENTITY(1,1),
+    Nome VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    Turma VARCHAR(50) NOT NULL,
+    DataNascimento DATE NOT NULL,
+    Ativo BIT NOT NULL CONSTRAINT DF_Alunos_Ativo DEFAULT 1,
+
+) ;    
+
+
+select * from Professores;
+select * from Cursoss;
+select * from Alunos;
+
+-- visualizar todas as tabelas do banco de dados banco_academia
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE'
+ORDER BY TABLE_NAME;   
+
+CREATE TABLE Matriculas(
+    IdMatricula INT IDENTITY(1,1) PRIMARY KEY,
+    IdAluno INT NOT NULL,
+    Id_Cursos INT NOT NULL,
+    DataMatricula DATE NOT NULL CONSTRAINT DF_Matriculas_Data DEFAULT (CONVERT(DATE,GETDATE())), -- DEFULT PARA DEFINIR A DATA ATUAL COMO VALOR PADRAO
+    NotaFinal DECIMAL(4,2) NULL CHECK (NotaFinal BETWEEN 0 AND 10), -- CHECK PARA VALIDAR A NOTA FINAL
+    StatusMatricula VARCHAR(20) NOT NULL CONSTRAINT DF_Matriculas_Status DEFAULT 'Ativa', -- default para definir o padrao como ativa
+
+    CONSTRAINT UQ_Matriculas_AlunoCurso UNIQUE ( IdAluno, Id_Cursos), -- unique para nao permitir que um aluno se matricule no mesmo curso mais de uma vez
+    
+    CONSTRAINT FK_Matriculas_Alunos -- CONSTRAINT PARA CRIAR A CHAVE ESTTRANGEIRA
+    FOREIGN KEY(IdAluno)  REFERENCES Alunos(IdAluno),-- CONSTRAINT PARA CRIAR A CHAVE ESTTRANGEIRA
+    
+    CONSTRAINT FK_Matriculas_Curso
+    FOREIGN KEY (Id_Cursos) REFERENCES Cursoss(Id_Cursos)
+
+);
+
+select * from Matriculas;
+
+INSERT INTO Professores (Nome, Email, Especialidade)
+VALUES
+('Ana Martins',     'ana.martins@academia.com',    'Banco de Dados'),
+('Carlos Ribeiro',  'carlos.ribeiro@academia.com', 'Programação'),
+('Fernanda Lima',   'fernanda.lima@academia.com',  'Desenvolvimento Web'),
+('Rafael Souza',    'rafael.souza@academia.com',   'Redes de Computadores');
+
+
+select * from Professores;
+
+INSERT INTO Cursoss (Nome_Curso, CaragaHorario, Id_Professores)
+VALUES
+('Banco de Dados Inicial', 40, 1),
+('SQL Server Essencial',   36, 1),
+('Lógica de Programação',  40, 2),
+('JavaScript para Jovens', 32, 2),
+('HTML e CSS',             30, 3),
+('Fundamentos de Redes',   24, 4);
+
+select * from Cursoss;
+
+INSERT INTO Alunos (Nome, Email, Turma, DataNascimento)
+VALUES
+('Alice Pereira',   'alice.pereira@escola.com',   '2INFO-A', '2008-03-14'),
+('Bruno Alves',     'bruno.alves@escola.com',     '2INFO-A', '2008-07-22'),
+('Camila Rocha',    'camila.rocha@escola.com',    '2INFO-A', '2008-01-30'),
+('Diego Santos',    'diego.santos@escola.com',    '2INFO-B', '2007-11-09'),
+('Elisa Nunes',     'elisa.nunes@escola.com',     '2INFO-B', '2008-05-18'),
+('Felipe Costa',    'felipe.costa@escola.com',    '2INFO-B', '2008-09-02'),
+('Gabriela Melo',   'gabriela.melo@escola.com',   '2INFO-C', '2007-12-12'),
+('Henrique Luz',    'henrique.luz@escola.com',    '2INFO-C', '2008-06-28'),
+('Isabela Torres',  'isabela.torres@escola.com',  '2INFO-C', '2008-02-06'),
+('João Mendes',     'joao.mendes@escola.com',     '2INFO-C', '2007-08-25');
+
+
+select * from Alunos;
+
+INSERT INTO Matriculas (IdAluno, Id_Cursos, DataMatricula, NotaFinal, StatusMatricula)
+VALUES
+    (1, 1, '2026-02-03', 8.50, 'Concluída'),
+    (1, 5, '2026-02-03', 9.00, 'Concluída'),
+    (2, 1, '2026-02-03', 7.00, 'Concluída'),
+    (2, 3, '2026-02-04', 8.00, 'Ativa'),
+    (3, 2, '2026-02-04', 9.50, 'Concluída'),
+    (3, 4, '2026-02-04', NULL, 'Ativa'),
+    (4, 3, '2026-02-05', 6.50, 'Concluída'),
+    (5, 5, '2026-02-05', 8.50, 'Concluída'),
+    (6, 6, '2026-02-06', NULL, 'Ativa'),
+    (7, 1, '2026-02-06', 7.50, 'Concluída'),
+    (8, 2, '2026-02-07', 10.00, 'Concluída'),
+    (8, 6, '2026-02-07', 8.00, 'Concluída'),
+    (9, 4, '2026-02-08', NULL, 'Ativa'),
+    (9, 5, '2026-02-08', 9.00, 'Concluída'),
+    (10, 3, '2026-02-09', 7.00, 'Concluída'),
+    (10, 2, '2026-02-09', NULL, 'Ativa');
+
+
+SELECT * FROM Professores;
+SELECT * FROM Cursoss;
+SELECT * FROM Alunos;
+SELECT * FROM Matriculas;
+
+select Nome, Email FROM Professores;
+
+--APELIDO PARA DEIXAR O TITULO MAIS CLARO NA RESPOSTA
+
+SELECT Nome AS NomeDoAluno, Turma AS Sala FROM Alunos
+
+Select Nome, Turma
+From AlunosORDER BY Nome ASC -- ASC PARA ORDEM CRESCENETE (PADRÃO) E DESC PARA ORDEM DECRESCENTE
+
+--OS 5 PRIMEIROS REGISTROS DE ALUNOS CADASTRADOS
+SELECT TOP 5 Nome, Turma, DataNascimento
+From Alunos
+ORDER BY Nome;
+
+select * from Alunos;
+
+
+--FILTROS COM WERE
+--WHERE FILTRARA AS LINHAS. LEIA A CONSULTA COMO UMA FRASE: SELECIONE OS NOMES E TURMAS DOS ALUNOS ONDE A TURMA SEJA IGUAL A "2INFO-A"
+--IGUAL A
+select Nome, Turma
+from Alunos
+WHERE Turma = '2INFO-A';
+
+-- DIFERENTE DE
+SELECT Nome, Turma 
+from Alunos
+where Turma <> '2INFO-A'; -- OU SEJA, SELEECIONE OS NOME E TURMAS DOS ALUNOS ONDE A TURMA SEJA DIFRENTE DE '2INFO-A'
+
+-- AND -> AS DUAS CONDICOES DEVEM SER VERDADEIRAS PARA QUE O REGISTRO SEJA RETORNADO NA CONSULTA
+
+Select Nome, Turma, DataNascimento
+FROM Alunos 
+where Turma = '2INFO-A' AND DataNascimento > '2008-01-01'; -- OU SEJA, SLECIONE OS NOMES, TURMAS E DATAS DE NASCIMENTO DOS ALUNOS ONDE A TURMA SEJA IGUAL A '2INFO-A' E A DATA DE NASCIMENTO SEJA MAIOR QUE '2008-01-01'
+
+--OR: PELO MENOS UMA CONDICAO DEVE SER VERDADEIRA
+SELECT Nome, Turma
+FROM Alunos
+where Turma = '2INFO-A' OR DataNascimento > '2008-01-01'; -- OU SEJA, SLECIONE OS NOMES E TURMAS DOS ALUNOS ONDE A TURMA DEJA IGUAL A "2INFO-A" OU A DATA DE NASCIEMNTO SEJA MAIOR QUE 2008-01-01
+
+--IN: VERSÃO MAIS CURTA PARA VARIOS VALORES 
+SELECT Nome, Turma
+FROM Alunos
+WHERE Turma IN ('2INFO-A', '2INFO-B');  -- OU SEJA , SEKLECIONE OS NOMES E TURMAS DOS ALUNOS ONDE A TURMA SEJA IGUAL A '2INFO-A'OU '2INFO-B'
+
+
+--LIKE: % SIGNIFICA "QUALQUER QUANTIDADE DE CARACTERES" E _ SIGNIFICA "QUALQUER CARACATERE"
+SELECT Nome, Email
+FROM Alunos
+WHERE Email LIKE '%@escola.com'; -- ou seja, selecione os nome e emails dos alunos onde o email termina com '%@escola.com'
+                                                               
