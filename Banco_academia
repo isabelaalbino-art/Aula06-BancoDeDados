@@ -26,9 +26,8 @@ CREATE TABLE Cursoss(
     Id_Professores INT NOT NULL,
     Ativo BIT NOT NULL DEFAULT 1, -- DEFAULT PARA EDEFINIR O VALOR PADRAO COMO 1 (ATIVO)
 
-    CONSTRAINT FK_Cursos_Prfessores -- CONTRAINT PARA CRIAR UMA CHAVE ESTRANGEIRA
-    FOREIGN KEY (Id_Professores) REFERENCES Professores(Id_Professores)
-
+     CONSTRAINT FK_Cursos_Professores --CONSTRAINT para criar a chave estrangeira
+    FOREIGN KEY (Id_Professores) REFERENCES Professores(Id_Professores)  
 );
 
 CREATE TABLE Alunos(
@@ -141,7 +140,7 @@ select Nome, Email FROM Professores;
 SELECT Nome AS NomeDoAluno, Turma AS Sala FROM Alunos
 
 Select Nome, Turma
-From AlunosORDER BY Nome ASC -- ASC PARA ORDEM CRESCENETE (PADRÃO) E DESC PARA ORDEM DECRESCENTE
+From Alunos ORDER BY Nome ASC -- ASC PARA ORDEM CRESCENETE (PADRÃO) E DESC PARA ORDEM DECRESCENTE
 
 --OS 5 PRIMEIROS REGISTROS DE ALUNOS CADASTRADOS
 SELECT TOP 5 Nome, Turma, DataNascimento
@@ -184,4 +183,184 @@ WHERE Turma IN ('2INFO-A', '2INFO-B');  -- OU SEJA , SEKLECIONE OS NOMES E TURMA
 SELECT Nome, Email
 FROM Alunos
 WHERE Email LIKE '%@escola.com'; -- ou seja, selecione os nome e emails dos alunos onde o email termina com '%@escola.com'
+
+-- ATUALIZANDO DADOS COM UPDATE
+--UPDATE: Atualiza os dados de uma tabela. A sintaxe basica é : UPDATE com nome_da_tabela SET nome_da_coluna = novo_valor WHERE condicção
+
+--CORRIGIR A TRUMA DE UM ALUNO ESPECIFICO
+UPDATE Alunos
+SET Turma = '2INFO-C'
+WHERE IdAluno = 3; -- altera a turma do aluno com IdAluno igual a 3 para '2INDO-c'
+
+SELECT * FROM Alunos;
+
+--REGISTAR UM NOTA E ENCERRAR A MATRICULA DO ALUNO 2 NO CURSO 3
+UPDATE Matriculas
+SET NotaFinal = 8.75, StatusMatricula = 'Concluida'
+WHERE IdAluno = 2 AND Id_Cursos = 3; -- altera a nota final e o status da matricula do aluno com IdAluno igual a 2 e IdCurso igual a 3
+
+SELECT * from Alunos;
+SELECT * from Matriculas;
+-- CONFERIR A ALTERACAO DA TURMA ALUNO 3
+SELECT * 
+FROM Matriculas
+WHERE IdAluno = 2 AND Id_Cursos = 3;
+
+--ATUALIZANDO ALUNOS DA TURMA 2INDO-B
+
+SELECT * FROM Alunos;
+
+UPDATE Alunos
+SET Ativo = 0
+WHERE Turma = '2INFO-B'; -- altera o status para 0 (inativo) para todos os alunos da turma  '2INFO-B'
+
+SELECT * FROM Alunos; 
+
+UPDATE Alunos
+SET Ativo = 1
+WHERE Turma = '2INFO-A'; -- ALTERA O SATUS DE ATIVO PARA 1 (ATIVO) PARA TODOS OS ALUNOS DA TURMA '2INFO-B'
+
+-- EXCLUINDO REGISTROS COM DELETE
+-- DELETE : exclui registros de uma tabela . A sintaxe básica é : DELETE FROM nome_da_tabela WHERE condição;
+
+INSERT INTO Alunos (Nome, Email, Turma, DataNascimento)
+VALUES ('Aluno de Teste', 'teste.remover@escola.com', '2INFO-A', '2008-01-01'); -- INSERE UM ALUNO DE TESTE PARA SER REMOVIDO POSTERIORMENTE
+
+SELECT * FROM Alunos
+WHERE Email = 'teste.remover@escola.com'; -- SELECIONA O ALUNO DE TESTE PARA VERIFICAR SE ELE FOI INSERIDO CORRETAMENTE
+
+SELECT * FROM Alunos;
+
+DELETE FROM Alunos
+WHERE Email = 'teste.remover@escola.com'; -- EXCLUI O ALUNO DO TESTE QUE FOI INSERIDO
+
+SELECT * FROM Alunos;
+
+-- FUNÇÕES DE ETXTO E DATA 
+SELECT 
+Nome, 
+UPPER(Nome) AS NomeEmMaisculo, -- CONVERTER O NOME PARA MAISUCULO
+LOWER(Nome) AS NomeEmMinusculo, -- CONVERTE O NOME PARA MINUSCULO
+LEN(Nome) AS QuantidadeDeCaracteres, -- Retorna a qauntidade de caracteres do nome
+CONCAT(Nome,' - ', Turma) AS NomeETurma, -- concatena o nome e a turMA
+FORMAT(DataNascimento, 'dd/MM/yyyy') AS DataNascimentoFormatada,-- fromata data
+DATEDIFF(YEAR, DataNascimento, GETDATE()) AS IdadeAproximada -- calcula a idade do aluno
+FROM Alunos;
+
+select * from Alunos;
+
+--FUNCOES DE CALCULO E AGRUPAMENTO
+
+-- QUANTIDADE EDE ALUNOS CADASTRADOS
+SELECT COUNT (*) QunatidadeDeAlunos
+FROM Alunos;
+
+--QUANTIDADE DE MASTRICULAS QUE JA POSSUEM NOTA FINAL
+SELECT COUNT(NotaFinal) AS QuantidadeDeMatriculasComNota
+FROM Matriculas;
+
+--MEDIA, MAIOR E MENOR NOTA; OBS: DADOS NULOS (NULL) NÃO SÃO CONSIDERADOS NOS CÁLCULOS
+SELECT 
+AVG(NotaFinal) AS MediaDasNotas, -- media das notas 
+MAX(NotaFinal) AS MaiorNota, -- maior nota
+MIN(NotaFinal) AS MenorNota -- menor nota
+FROM Matriculas;
+
+-- TROCA NULL POR UM TEXTO PARA EXIBIR O RESULTADO DE FORMA MAIS CLARA
+SELECT
+IdMatricula, ISNULL(CONVERT(VARCHAR(10), NotaFinal), 'Sem Nota') AS NotaFinal, StatusMatricula 
+FROM Matriculas;
+
+--GROUP BY E HAVING: AGRUPA OS REGISTROS POR UMA OU MAIS COLUNAS E PERMITE FILTRAR OS GRUPOS COM BASE EM UMA CONDIÇÃO
                                                                
+-- QUANTOS ALUNOS ESTÃO MATRICULADOS EM CADA TURMA
+SELECT Turma, COUNT(*) AS QunatidadeDeAlunos
+FROM Alunos
+GROUP BY Turma
+ORDER BY QunatidadeDeAlunos DESC; -- ORDENA O RESULTADO PELA DE ALUNOS EM ORDEM DECRESCENTE
+
+-- CURSOS QUE TEM DUAS OU MAIS MATRICULAS
+SELECT IdCurso, COUNT(*) AS QuantidadeDeMatriculas
+FROM Matriculas
+GROUP BY Id_Cursos
+HAVING COUNT (*) >= 2 -- FILTRA OS CURSOS QUE TEM DUAS OU MAS MATRICULAS
+ORDER BY QuantidadeDeMatriculas DESC; -- ORDENA O RESULTADO PELA QUANTIDADE DE MATRICULAS EM ORDEM DECRESCENTE
+
+-- RELACIONANDO TABELAS COM JOIN: permite combinar registros de duas ou mais tabelas com base em uma condição de correspondencia
+
+-- INNER JOIN: retorna apenas os registros que tem correspondencia em ambas as tabelas
+
+SELECT
+a.Nome AS NomeDoAluno,
+c.Nome_Curso AS NomeDocurso,
+m.NotaFinal,
+m.StatusMatricula
+FROM Matriculas AS m
+INNER JOIN Alunos AS a
+ON m.IdAluno = a.IdAluno -- relaciona a tabela matricula com a tabela alunos
+INNER JOIN Cursoss AS c
+ON m.Id_Cursos = c.Id_Cursos -- relaciona a tabela matricula com a tabela cursoss
+ORDER BY a.Nome; -- ordena o resultado pelo nome do aluno
+
+
+SELECT 
+a.Nome AS Aluno,
+a.Turma,
+c.Nome_Curso AS Curso,
+p.Nome AS Professores,
+m.NotaFinal,
+m.StatusMatricula
+FROM Matriculas AS m 
+INNER JOIN Alunos AS a 
+ON m.IdAluno = a.IdAluno -- relaciona a tabela mattriculuas com a tabel alunos
+INNER JOIN Cursoss AS c 
+ON m.Id_Cursos = c.Id_Cursos -- relaciona a tabela matricula com a tabela cursos
+INNER JOIN Professores AS p   
+ON c.Id_Professores = p.Id_Professores -- relaciona a tabela cursos com a atbela professores
+Order by p.Nome, c.Nome_Curso, a.Nome; -- ordena o resultado pelo nome do aluno
+
+--LEFT JOIN: RETORNA TODOS OS REGISTROS DA TABELA Á ESQUERDA  E OS REGISTROS CORRESPONDENTES DA TABELA Á DIRETA. SE NÃO HOUVER CORRESPONDENCIA, OS VALORES DA TABELA SERÃO NULOS
+
+SELECT
+a.Nome AS NomeDoAluno,
+c.Nome_Curso AS NomoDoCurso,
+m.NotaFinal,
+m.StatusMatricula
+FROM Alunos AS a 
+LEFT JOIN Matriculas AS m 
+ON a.IdAluno = m.IdAluno -- relaciona a tabela alunos com a tabela matriculas
+LEFT JOIN Cursoss AS c  
+ON m.Id_Cursos = c.Id_Cursos -- relaciona a tabela matriculas com a tabela cursos
+WHERE m.IdMatricula IS NULL -- filtra os alunos que não possuem matricula
+
+-- SE A CONSULTA NAO RETORNAR LINHAS, SIGNIFICA QUE TODOS OS ALUNOS POSSUEM MATRICULAS EM APENAS UM CURSO
+
+-- JOIN COM FILTRO E MÉDIA POR CURSO: retorna a media das notas finais por curso, considerando apenas os alunos que possuem matricula
+
+SELECT
+c.NomeCurso AS Curso,
+COUNT(m.IdMatricula) AS TotalDeMatriculas,
+AVG(m.NotaFinal) AS mediaDoCurso
+FROM Cursoss AS c 
+LEFT JOIN Matriculas AS m 
+ON c.Id_Cursos = m.Id_Cursos -- RELACIONA A TABELA CURSOS COM A TABELA MATRICULA
+WHERE m.NotaFinal IS NOT NULL -- FILTRA O RESULTADO PELO NOME DO CURSO
+GROUP BY c.NomeCurso -- AGRUPA O RESULTADO PELO NOME DO CURSO
+ORDER BY c.NomeCurso; -- ORDENA O RESULTADO PELO NOME DO CURSO
+
+
+-- TESTANDO AS RESTRICOES DE FORMA SEGURA
+--ESTES EXEMPLOS DEVEM APRESNETAR ERRO. ISSO É BOM: MOSTRA QUE O BANCO ESTA PROTEFGENDO OS DADOS
+
+--erro: o email ja foi usado por alice
+INSERT JOIN Alunos (Nome, Email, Turma)
+VALUES ('Outra Alice', 'alice.pereira@escola.com', '2INFO-A');
+
+--ERRO : NÃO EXISTE ALUNO DE ID 999
+INSERT INTO Matriculas (IdAluno, Id_Cursos, NotaFinal)
+VALUES (999, 1, 8, 00);
+
+--ERRO: a nota pode ser maioir que 10
+ UPDATE Matriculas 
+ SET NotaFinal = 12.000
+ WHERE IdMatricula = 1;
